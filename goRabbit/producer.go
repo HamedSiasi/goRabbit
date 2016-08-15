@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/streadway/amqp"
 	"log"
+	"os"
 )
 
 // Helper function to check the return value for each call
@@ -14,7 +16,8 @@ func failOnError(err error, msg string) {
 	}
 }
 
-func main() {
+func sendMsg(body string) bool {
+	retval := true
 
 	// (1) --- Open a Connection ---
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
@@ -38,7 +41,6 @@ func main() {
 	failOnError(err, "Failed to declare a queue")
 
 	// (4) ---- Publish on queue ----
-	body := "HAMED SIASI"
 	err = ch.Publish(
 		"",     // exchange
 		q.Name, // routing key
@@ -49,7 +51,26 @@ func main() {
 			Body:        []byte(body),
 		})
 	failOnError(err, "Failed to publish a message")
+
+	return retval
 }
+
+func main() {
+	//var str string
+
+	for {
+		reader := bufio.NewReader(os.Stdin)
+		text, _ := reader.ReadString('\n')
+		//fmt.Println(text)
+		result := sendMsg(text)
+		if !result {
+			fmt.Println("error")
+		} else {
+			fmt.Println("done")
+		}
+	} //for
+
+} //main
 
 // Broker server
 // go https://www.rabbitmq.com/install-windows.html
